@@ -1,0 +1,250 @@
+---
+title: "Visualizing Map Data for Linguists"
+subtitle: for Roemling, Winter & Grieve (in press). Visualizing Map Data for Linguists - A tutorial with examples from dialectology and typology.
+author: "Dana Roemling"
+date: '2022-11-02'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(tidy = TRUE)
+```
+
+## Preparation
+
+Before we can start mapping in R, we need to load the libraries we use. We do this once at the beginning for all libraries used throughout this tutorial. Packages can be installed using the install.packages() function. An example is install.packages('tidyverse').
+
+
+```{r libraries, results="hide"}
+library(HistData) 
+library(tidyverse) 
+library(lingtypology)
+library(sf)
+library(rworldmap)
+library(maps)
+library(classInt)
+```
+
+We will demonstrate the core logic of ggplot2 with a famous non-linguistic dataset before proceeding to plotting map data. Francis Galton compared the age of parents to the age of their children. This dataset is built into the R package HistData and we can access it using the data() function as follows and we can use the head() function to show the first six lines of this dataset.
+
+```{r galton}
+data('Galton')
+head(Galton)
+```
+
+First, the Galton dataset is ‘piped’ to the ggplot() function using ‘%>%’, which is called a ‘pipe’.  To specify points, we need their x- and y-values, so the aes() function instructs ggplot to draw from the parent and child column respectively. The ‘+’ symbol is used to add to the plot, in our case geom_point(), which draws from the specification of aesthetic mappings supplied in the first ggplot() command. 
+
+```{r galton plot 1}
+Galton %>% 
+  ggplot(mapping = aes(x = parent, y = child)) +
+  geom_point()
+```
+
+To increase the understandability of our plot, we can add random jitter to x- and y-values: one way of achieving this is by swapping geom_point() with geom_jitter(). We can additionally specify the argument ‘alpha = 0.5’, which controls the opacity of the points. Supplying the value 0.5 means that the points will be 50% opaque, thereby making dense regions darker. Finally, we add theme_classic(), which is a high-level property of the plot reducing visual clutter, such as the grey tiles ggplot2 plots by default. 
+
+```{r galton plot 2}
+Galton %>% 
+  ggplot(mapping = aes(x = parent, y = child)) +
+  geom_jitter(alpha = 0.5) +
+  theme_classic()
+```
+
+## World Map
+
+Without much effort we can create an interactive map based on the package lingtypology. The map.feature() function from the lingtypology package can take a list of language names, as is done via the ‘concatenate’ function c() below. The resultant map shows one dot for each language.
+
+```{r lingtypology world map}
+map.feature(c("Finnish", "Karelian", "Swedish", "Estonian",
+              "Danish", "North Saami"))
+```
+
+To create our first self-designed map within the ggplot2 framework, we will start by creating an empty world map to which we can then add our linguistic data as a layer in a second step. To retrieve the data for our base layer, we will use the map_data() function. We store this information in an R object named world.
+
+```{r world spatial data}
+world <- map_data("world")
+head(world)
+```
+
+With this data, we can produce a first map of the world. For this, we provide the ggplot() function with the data world we created and we specify that longitude and latitude will be used as the x- and y-axis units in the aesthetics. With the geom_map() function we instruct R to actually map the world data.
+
+```{r world plot empty}
+world_plot <- ggplot(data = world, 
+       aes(x = long, 
+           y = lat)) +
+  geom_map(map = world, 
+           aes(map_id = region))  
+world_plot
+```
+
+Now that we have our base map, we can add linguistic data to it. We will use data from the World Atlas of Language Structures (Dryer & Haspelmath, 2013) and we use the wals.feature() function, which allows us to import features from the Atlas. Here, we will import feature 81a, which is word order and store it as word_order.
+
+```{r wals features}
+word_order <- wals.feature(c("81a"))
+```
+
+In the next step we add this information in another layer to our map. 
+
+```{r wals world map simple}
+word_order_plot <- world_plot +
+  geom_point(data = word_order, 
+             aes(x = longitude, 
+                 y = latitude, 
+                 color = `81a`))
+word_order_plot
+```
+
+We will also style the map a little. We add a minimal theme and change some design aspects. 
+
+```{r wals world map}
+word_order_plot +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5)) +
+  scale_color_brewer(palette = "Set2") +
+  ggtitle("Word Order in World Languages") +
+  xlab("Latitude") + 
+  ylab("Longitude") 
+```
+
+## USA Swearing Map
+
+In the next part of this tutorial, we will focus on visualizing a more specific region to show how to narrow down the area of the map. To start, we import the geographical county information for the USA. To achieve this, we first retrieve the relevant location data in an object we call us_geo. The st_as_sf() function changes the way the map data is stored. Instead of having each point of longitude and latitude as its own row, we now store all location details for one county in one row.
+
+```{r us geo data}
+us_geo <- st_as_sf(maps::map(database = "county", 
+                             plot = FALSE, 
+                             fill = TRUE))
+head(us_geo)
+```
+
+We can now easily map the counties of the US.
+
+```{r us plot empty}
+ggplot(data = us_geo) +
+  geom_sf()
+```
+
+The next step is importing data to map to the counties. We do this using the read_csv() function, which in this case grabs the data from a URL using the url() function.
+
+```{r swearing data}
+us_data <- read_csv(url("https://raw.githubusercontent.com/danaroemling/mapping-for-linguists/main/MAPPING_SWEARING.csv"))
+us_data
+```
+
+We now create a new object us_geo_data and match the information stored in the old objects by ID and county, so that geolocation information and linguistic data are combined.
+
+```{r join us data}
+us_geo_data <- left_join(us_geo, us_data, 
+                         by = c("ID" = "county")) 
+```
+
+Finally, we plot the new object us_geo_data. Just like above, we pass our data to the ggplot() function and add geom_sf() since we’re handling polygons. Now, we also pass aesthetics to geom_sf() to say that the income should be mapped as the fill of the counties. 
+
+```{r fuck plot 1}
+ggplot(data = us_geo_data) +
+  geom_sf(aes(fill =  fuck))
+```
+
+To make our map more informative, we are introducing class intervals for our data. First, we create the intervals.
+
+```{r fuck class intervals creation}
+f_quantiles <- classIntervals(us_geo_data$fuck, 
+                               n = 5, 
+                               style = "quantile")
+f_quantiles
+```
+
+Then we assign each data point its corresponding interval.
+
+```{r fuck class intervals assignment}
+us_geo_data <- mutate(us_geo_data, 
+                      f_quantile = cut(fuck, 
+                                       f_quantiles$brks,
+                                       include.lowest = TRUE,
+                                       dig.lab=10)) 
+```
+
+In the next step we will use the class intervals we have introduced for mapping.
+
+```{r fuck plot 2}
+ggplot(data = us_geo_data) +
+  geom_sf(aes(fill = f_quantile),
+          lwd = 0.1, 
+          color = "grey") +
+  scale_fill_brewer(palette = "Purples")
+```
+
+In the last step we style the map.
+
+```{r fuck plot 3}
+ggplot(data = us_geo_data) +
+  geom_sf(aes(fill = f_quantile),
+          lwd = 0.1, 
+          color = "grey") +
+  scale_fill_brewer(palette = "Purples") +
+  coord_sf(crs = "ESRI:102003") +
+  ggtitle("'Fuck' Distribution in the US per County") +
+  xlab("Latitude") + 
+  ylab("Longitude") +
+  labs(fill = "Intervals") +
+  theme_minimal() 
+```
+
+## German-speaking Area Map
+
+We again use read_csv to create a tibble with cities, two features and their counts, the corresponding proportion of the features and geolocation details. We can type gsa_data to check our new data.
+
+```{r gsa data}
+gsa_data <- read_csv(url("https://raw.githubusercontent.com/danaroemling/mapping-for-linguists/main/MAPPING_DIALECT.csv"))
+gsa_data
+```
+
+In order to map this data, we will need a base map of the GSA first. Similar to the world data available in ggplot2, rworldmap provides us with coordinates we can use to create this map. We store the coordinates in the world_map object. We then define the GSA as Austria, Germany and Switzerland by concatenating them in the object we call GSA using c(). The next code chunk gets the coordinates for the previously defined GSA and saves them in the object GSA_coord. If you want to adapt this code for your own maps, you will need to change the string assigned to the GSA object. For example, you could assign c("Finland”, “Iceland”, “Estonia”, “Denmark”) This is the list of countries for which the longer code chunk finds the coordinates. The code was adapted from this tutorial: https://egallic.fr/en/european-map-using-r/.
+
+```{r gsa geo data}
+world_map <- getMap()
+GSA <- c("Austria", "Germany", "Switzerland")
+GSA_map <- which(world_map$NAME %in% GSA)
+GSA_coord <- lapply(GSA_map, function(i){
+  df <- data.frame(world_map@polygons[[i]]@Polygons[[1]]@coords)
+  df$region = as.character(world_map$NAME[i])
+  colnames(df) <- list("long", "lat", "region")
+  return(df)})
+GSA_coord <- do.call("rbind", GSA_coord)
+```
+
+After this bit we can use the coordinates to make the base layer of the GSA map. 
+
+```{r gsa plot empty}
+ggplot(data = GSA_coord) + 
+  geom_polygon(aes(x = long, 
+                   y = lat, 
+                   group = region)) +
+  coord_fixed(1.3) 
+```
+
+In the last step we can combine the base layer with the data in gsa_data. In the geom_polygon() function we first pass the aesthetics, saying that longitude and latitude should be mapped and that the polygons should be grouped by their region, which in this case is just the national borders of the three countries. In the next step, the data is added in the geom_point() layer, just as above. We pass the data argument and again we pass aesthetics with longitude and latitude. We also want R to map the proportion of our counts to the color argument and the size argument reflects the combined count of our features. 
+
+```{r gsa plot}
+ggplot(data = GSA_coord) + 
+  geom_polygon(aes(x = long, 
+                   y = lat, 
+                   group = region),
+               color = "black", 
+               size = 0.1, 
+               fill = "snow3") +
+  coord_fixed(1.3) +
+  geom_point(data = gsa_data, 
+             aes(x = Long, 
+                 y = Lat, 
+                 color = Proportion, 
+                 size = (Count1 + Count2))) +
+  scale_color_gradient(low = "seagreen3", 
+                       high = "mediumpurple3") +
+  guides(size = "none") +
+  ggtitle("Schau vs Guck in the GSA") +
+  xlab("Latitude") + 
+  ylab("Longitude") +
+  theme_minimal() 
+```
