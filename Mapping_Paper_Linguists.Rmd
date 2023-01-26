@@ -17,37 +17,12 @@ Before we can start mapping in R, we need to load the libraries we use. We do th
 
 
 ```{r libraries, results="hide"}
-library(HistData) 
 library(tidyverse) 
 library(lingtypology)
 library(sf)
 library(rworldmap)
 library(maps)
 library(classInt)
-```
-
-We will demonstrate the core logic of ggplot2 with a famous non-linguistic dataset before proceeding to plotting map data. Francis Galton compared the age of parents to the age of their children. This dataset is built into the R package HistData and we can access it using the data() function as follows and we can use the head() function to show the first six lines of this dataset.
-
-```{r galton}
-data('Galton')
-head(Galton)
-```
-
-First, the Galton dataset is ‘piped’ to the ggplot() function using ‘%>%’, which is called a ‘pipe’.  To specify points, we need their x- and y-values, so the aes() function instructs ggplot to draw from the parent and child column respectively. The ‘+’ symbol is used to add to the plot, in our case geom_point(), which draws from the specification of aesthetic mappings supplied in the first ggplot() command. 
-
-```{r galton plot 1}
-Galton %>% 
-  ggplot(mapping = aes(x = parent, y = child)) +
-  geom_point()
-```
-
-To increase the understandability of our plot, we can add random jitter to x- and y-values: one way of achieving this is by swapping geom_point() with geom_jitter(). We can additionally specify the argument ‘alpha = 0.5’, which controls the opacity of the points. Supplying the value 0.5 means that the points will be 50% opaque, thereby making dense regions darker. Finally, we add theme_classic(), which is a high-level property of the plot reducing visual clutter, such as the grey tiles ggplot2 plots by default. 
-
-```{r galton plot 2}
-Galton %>% 
-  ggplot(mapping = aes(x = parent, y = child)) +
-  geom_jitter(alpha = 0.5) +
-  theme_classic()
 ```
 
 ## World Map
@@ -217,29 +192,35 @@ GSA_coord <- do.call("rbind", GSA_coord)
 After this bit we can use the coordinates to make the base layer of the GSA map. 
 
 ```{r gsa plot empty}
-ggplot(data = GSA_coord) + 
-  geom_polygon(aes(x = long, 
-                   y = lat, 
-                   group = region)) +
-  coord_fixed(1.3) 
-```
-
-In the last step we can combine the base layer with the data in gsa_data. In the geom_polygon() function we first pass the aesthetics, saying that longitude and latitude should be mapped and that the polygons should be grouped by their region, which in this case is just the national borders of the three countries. In the next step, the data is added in the geom_point() layer, just as above. We pass the data argument and again we pass aesthetics with longitude and latitude. We also want R to map the proportion of our counts to the color argument and the size argument reflects the combined count of our features. 
-
-```{r gsa plot}
-ggplot(data = GSA_coord) + 
+gsa <- ggplot(data = GSA_coord) + 
   geom_polygon(aes(x = long, 
                    y = lat, 
                    group = region),
                color = "black", 
                size = 0.1, 
                fill = "snow3") +
-  coord_fixed(1.3) +
+  coord_fixed(1.3)
+
+gsa
+```
+
+Now we can combine the base layer with the data in gsa_data. We  want R to map the proportion of our counts to the color argument and the size argument reflects the combined count of our features. 
+
+```{r gsa first point plot}
+gsa_point <- gsa +
   geom_point(data = gsa_data, 
              aes(x = Long, 
                  y = Lat, 
                  color = Proportion, 
-                 size = (Count1 + Count2))) +
+                 size = (Count1 + Count2)))
+
+gsa_point
+```
+
+As the final step we add some design to our map. 
+
+```{r gsa final plot}
+gsa_final <- gsa_point +
   scale_color_gradient(low = "seagreen3", 
                        high = "mediumpurple3") +
   guides(size = "none") +
@@ -247,4 +228,6 @@ ggplot(data = GSA_coord) +
   xlab("Latitude") + 
   ylab("Longitude") +
   theme_minimal() 
+
+gsa_final
 ```
