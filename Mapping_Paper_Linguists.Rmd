@@ -21,6 +21,7 @@ library(tidyverse)
 library(lingtypology)
 library(sf)
 library(rnaturalearth) 
+library(rnaturalearthhires)
 library(maps)
 library(classInt)
 ```
@@ -40,8 +41,9 @@ With this data, we can produce a first map of the world. For this, we provide th
 world_plot <- ggplot(data = world, 
        aes(x = long, 
            y = lat)) +
-  geom_map(map = world, 
-           aes(map_id = region))  
+  geom_map(map = world,
+           aes(map_id = region))
+
 world_plot
 ```
 
@@ -121,7 +123,7 @@ We again use read_csv to create a tibble with cities, two features and their cou
 
 ```{r gsa data}
 gsa_data <- read_csv(url("https://raw.githubusercontent.com/danaroemling/mapping-for-linguists/main/MAPPING_DIALECT.csv"))
-gsa_data
+head(gsa_data)
 ```
 
 In order to map this data, we will need a base map of the GSA first. Similar to the world data available in ggplot2, rnaturalearth provides us with polygons we can use to create this map. We store the coordinates in the gsa_outline object. 
@@ -193,7 +195,7 @@ The next step is importing data to map to the counties. We do this using the rea
 
 ```{r swearing data}
 us_data <- read_csv(url("https://raw.githubusercontent.com/danaroemling/mapping-for-linguists/main/MAPPING_SWEARING.csv"))
-us_data
+head(us_data)
 ```
 
 We now create a new object us_geo_data and match the information stored in the old objects by ID and county, so that geolocation information and linguistic data are combined.
