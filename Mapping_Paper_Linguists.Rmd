@@ -22,6 +22,7 @@ library(lingtypology)
 library(sf)
 library(rnaturalearth) 
 library(rnaturalearthhires)
+library(mapproj)
 library(maps)
 library(classInt)
 ```
@@ -50,7 +51,7 @@ world_plot
 Now that we have our base map, we can add linguistic data to it. We will use data from the World Atlas of Language Structures (Dryer & Haspelmath, 2013) and we use the wals.feature() function, which allows us to import features from the Atlas. Here, we will import feature 81a, which is word order and store it as word_order.
 
 ```{r wals features}
-word_order <- wals.feature(c("81a"))
+word_order <- wals.feature("81a")
 head(word_order)
 ```
 
@@ -81,10 +82,11 @@ word_order_plot +
 In the next step we change the underlying data, so we can plot a map centered on the Pacific.
 
 ```{r pacific world map}
-world2 <- map_data("world2")
-word_order$new_long <- ifelse(word_order$longitude < 0, 
-                             word_order$longitude + 360, 
-                             word_order$longitude)
+world2 <- map_data("world", wrap = c(-30,330))
+word_order <- word_order %>% 
+  mutate(new_long = case_when(
+    longitude < -30 ~ longitude + 360, 
+    .default = longitude))
 ```
 
 Now we can re-run our code based on the new data.
@@ -114,6 +116,9 @@ In the last step we add the projection to our map. You can check out different p
 
 ```{r projected pacific world map}
 centered_map +
+  coord_map(projection = "gilbert")
+
+centered_map +
   coord_map(projection = "mollweide")
 ```
 
@@ -122,7 +127,7 @@ centered_map +
 We again use read_csv to create a tibble with cities, two features and their counts, the corresponding proportion of the features and geolocation details. We can type gsa_data to check our new data.
 
 ```{r gsa data}
-gsa_data <- read_csv(url("https://raw.githubusercontent.com/danaroemling/mapping-for-linguists/main/MAPPING_DIALECT.csv"))
+gsa_data <- read_csv("https://anonymous.4open.science/api/repo/mapping-for-linguists-C1DA/file/MAPPING_DIALECT.csv")
 head(gsa_data)
 ```
 
@@ -173,7 +178,7 @@ gsa_final <- gsa_point +
 gsa_final
 ```
 
-## USA Swearing Map
+## USA Pronoun Map
 
 In the next part of this tutorial, we will focus on visualizing a more specific region to show how to narrow down the area of the map. To start, we import the geographical county information for the USA. To achieve this, we first retrieve the relevant location data in an object we call us_geo. The st_as_sf() function changes the way the map data is stored. Instead of having each point of longitude and latitude as its own row, we now store all location details for one county in one row.
 
@@ -191,58 +196,58 @@ ggplot(data = us_geo) +
   geom_sf()
 ```
 
-The next step is importing data to map to the counties. We do this using the read_csv() function, which in this case grabs the data from a URL using the url() function.
+The next step is importing data to map to the counties. We do this using the read_csv() function, which in this case grabs the data from a URL.
 
-```{r swearing data}
-us_data <- read_csv(url("https://raw.githubusercontent.com/danaroemling/mapping-for-linguists/main/MAPPING_SWEARING.csv"))
+```{r us data}
+us_data <- read_csv("https://anonymous.4open.science/api/repo/mapping-for-linguists-C1DA/file/MAPPING_PRONOUNS.csv")
 head(us_data)
 ```
 
 We now create a new object us_geo_data and match the information stored in the old objects by ID and county, so that geolocation information and linguistic data are combined.
 
 ```{r join us data}
-us_geo_data <- left_join(us_geo, us_data, 
-                         by = c("ID" = "county")) 
+us_geo_data <- na.omit(left_join(us_geo, us_data, 
+                         by = c("ID" = "county"))) 
 ```
 
 Finally, we plot the new object us_geo_data. Just like above, we pass our data to the ggplot() function and add geom_sf() since we’re handling polygons. Now, we also pass aesthetics to geom_sf() to say that the income should be mapped as the fill of the counties. 
 
-```{r fuck plot 1}
+```{r me plot 1}
 ggplot(data = us_geo_data) +
-  geom_sf(aes(fill =  fuck))
+  geom_sf(aes(fill =  me))
 ```
 
 To make our map more informative, we are introducing class intervals for our data. First, we create the intervals.
 
-```{r fuck class intervals creation}
-f_quantiles <- classIntervals(us_geo_data$fuck, 
+```{r me class intervals creation}
+pronoun_quantiles <- classIntervals(us_geo_data$me, 
                                n = 5, 
                                style = "quantile")
-f_quantiles
+pronoun_quantiles
 ```
 
 Then we assign each data point its corresponding interval.
 
-```{r fuck class intervals assignment}
+```{r me class intervals assignment}
 us_geo_data <- mutate(us_geo_data, 
-                      f_quantile = cut(fuck, 
-                                       f_quantiles$brks,
+                      pronoun_quantile = cut(me, 
+                                       pronoun_quantiles$brks,
                                        include.lowest = TRUE,
-                                       dig.lab=4)) 
+                                       dig.lab=6)) 
 
-us_geo_data$f_quantile <- recode(us_geo_data$f_quantile, 
-                                 "[0,889.7]"="< 890", 
-                                 "(889.7,1243]"="< 1243", 
-                                 "(1243,1557]" = "< 1557", 
-                                 "(1557,1935]" = "< 1935", 
-                                 "(1935,9528]" = "< 9528")
+us_geo_data$pronoun_quantile <- recode(us_geo_data$pronoun_quantile, 
+                                 "[765.7,9936.44]"="< 9936", 
+                                 "(9936.44,11019.1]"="< 11019", 
+                                 "(11019.1,11856.5]" = "< 11857", 
+                                 "(11856.5,12794.3]" = "< 12794", 
+                                 "(12794.3,56994]" = "< 56994")
 ```
 
 In the next step we will use the class intervals we have introduced for mapping.
 
-```{r fuck plot 2}
+```{r me plot 2}
 ggplot(data = us_geo_data) +
-  geom_sf(aes(fill = f_quantile),
+  geom_sf(aes(fill = pronoun_quantile),
           lwd = 0.1, 
           color = "grey") +
   scale_fill_brewer(palette = "Purples",
@@ -251,14 +256,14 @@ ggplot(data = us_geo_data) +
 
 In the last step we style the map.
 
-```{r fuck plot 3}
+```{r me plot 3}
 ggplot(data = us_geo_data) +
-  geom_sf(aes(fill = f_quantile),
+  geom_sf(aes(fill = pronoun_quantile),
           lwd = 0.1, 
           color = "grey") +
   scale_fill_brewer(palette = "Purples",
                     guide = guide_legend(reverse = TRUE),
-                    name = "'Fuck' Distribution \nper US County") +
+                    name = "'Me' Distribution \nper US County") +
   coord_sf(crs = "ESRI:102003") +
   xlab("Latitude") + 
   ylab("Longitude") +
