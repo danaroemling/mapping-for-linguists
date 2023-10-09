@@ -3,7 +3,11 @@ title: "Visualizing Map Data for Linguists"
 subtitle: for Roemling, Winter & Grieve (in press). Visualizing Map Data for Linguists - A tutorial with examples from dialectology and typology.
 author: "Dana Roemling"
 date: '2022-11-02'
-output: html_document
+output:
+ html_document:
+   toc: true
+   toc_float: true
+   number_sections: true
 ---
 
 ```{r setup, include=FALSE}
@@ -11,78 +15,95 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(tidy = TRUE)
 ```
 
-## Preparation
+# Preparation
 
 Before we can start mapping in R, we need to load the libraries we use. We do this once at the beginning for all libraries used throughout this tutorial. Packages can be installed using the install.packages() function. An example is install.packages('tidyverse').
 
 
 ```{r libraries, results="hide"}
-library(tidyverse) 
-library(lingtypology)
-library(sf)
-library(rnaturalearth) 
-library(rnaturalearthhires)
-library(mapproj)
-library(maps)
-library(classInt)
+library(tidyverse) # overall tool for data wrangling and plot creation
+library(lingtypology) # used to import linguistic data from WALS
+library(sf) # handles spatial data & geometry data operations
+library(mapproj) # needed for rnaturalearth / dependency
+library(rnaturalearth) # used for importing coordinates and subsequently 
+ # creating country outlines, in this case the German-speaking area
+library(rnaturalearthhires) # same as rnaturalearth but higher resolution
+ # optional
+library(maps) # used to import geolocation details for the US
+library(classInt) # to calculate class intervals for the US maps
 ```
 
-## World Map
+# World Map
 
 To create our first self-designed map within the ggplot2 framework, we will start by creating an empty world map to which we can then add our linguistic data as a layer in a second step. To retrieve the data for our base layer, we will use the map_data() function. We store this information in an R object named world.
 
-```{r world spatial data}
+```{r world_spatial_data}
 world <- map_data("world")
+
+ # Show data:
 head(world)
 ```
 
 With this data, we can produce a first map of the world. For this, we provide the ggplot() function with the data world we created and we specify that longitude and latitude will be used as the x- and y-axis units in the aesthetics. With the geom_map() function we instruct R to actually map the world data.
 
-```{r world plot empty}
+```{r world_plot_empty}
 world_plot <- ggplot(data = world, 
-       aes(x = long, 
-           y = lat)) +
+                     aes(x = long, 
+                         y = lat)) +
   geom_map(map = world,
            aes(map_id = region))
 
+ # Show plot:
 world_plot
 ```
 
 Now that we have our base map, we can add linguistic data to it. We will use data from the World Atlas of Language Structures (Dryer & Haspelmath, 2013) and we use the wals.feature() function, which allows us to import features from the Atlas. Here, we will import feature 81a, which is word order and store it as word_order.
 
-```{r wals features}
+```{r wals_features}
 word_order <- wals.feature("81a")
+
+ # Show data:
 head(word_order)
 ```
 
 In the next step we add this information in another layer to our map. 
 
-```{r wals world map simple}
+```{r wals_world_map_simple}
 word_order_plot <- world_plot +
+ # Here we add the word order data we imported in the last step
   geom_point(data = word_order, 
              aes(x = longitude, 
                  y = latitude, 
                  color = `81a`))
+
+ # Show plot:
 word_order_plot
 ```
 
 We will also style the map a little. We add a minimal theme and change some design aspects. 
 
-```{r wals world map}
+```{r wals_world_map}
 word_order_plot +
-  theme_minimal() +
-  theme(legend.position = "bottom",
-        plot.title = element_text(hjust = 0.5)) +
+  
+ # Axes, scales and titles:
   scale_color_brewer(palette = "Set2") +
   ggtitle("Word Order in World Languages") +
   xlab("Latitude") + 
-  ylab("Longitude") 
+  ylab("Longitude") +
+  
+ # Additional cosmetic tweaking:  
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5)) 
 ```
 
 In the next step we change the underlying data, so we can plot a map centered on the Pacific.
 
-```{r pacific world map}
+```{r pacific_world_map}
+ # Change the location data
 world2 <- map_data("world", wrap = c(-30,330))
+
+ # Change the linguistic data
 word_order <- word_order %>% 
   mutate(new_long = case_when(
     longitude < -30 ~ longitude + 360, 
@@ -91,181 +112,221 @@ word_order <- word_order %>%
 
 Now we can re-run our code based on the new data.
 
-```{r pacific world map 2}
+```{r pacific_world_map_2}
 centered_map <- ggplot(data = world2, 
-                     aes(x = long, 
-                         y = lat)) +
+                       aes(x = long, 
+                           y = lat)) +
   geom_map(map = world2, 
            aes(map_id = region))  +
+  
+ # Add word order data to plot:
   geom_point(data = word_order, 
              aes(x = new_long, 
                  y = latitude, 
                  color = `81a`)) +
-  theme_minimal() +
-  theme(legend.position = "bottom",
-        plot.title = element_text(hjust = 0.5)) +
+  
+ # Axes, scales and titles:
   scale_color_brewer(palette = "Set2") +
   ggtitle("Word Order in World Languages") +
   xlab("Latitude") + 
-  ylab("Longitude") 
+  ylab("Longitude") +
 
+ # Additional cosmetic tweaking:  
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5)) 
+
+ # Show plot:
 centered_map
 ```
 
 In the last step we add the projection to our map. You can check out different projections here: https://www.rdocumentation.org/packages/mapproj/versions/1.2.11/topics/mapproject. 
 
-```{r projected pacific world map}
+```{r projected_pacific_world_map}
+ # Show plot version 1:
 centered_map +
   coord_map(projection = "gilbert")
 
+ # Show plot version 2:
 centered_map +
   coord_map(projection = "mollweide")
 ```
 
-## German-speaking Area Map
+# German-speaking Area Map
 
 We again use read_csv to create a tibble with cities, two features and their counts, the corresponding proportion of the features and geolocation details. We can type gsa_data to check our new data.
 
-```{r gsa data}
+```{r gsa_data}
 gsa_data <- read_csv("https://anonymous.4open.science/api/repo/mapping-for-linguists-C1DA/file/MAPPING_DIALECT.csv")
+
+ # Show data:
 head(gsa_data)
 ```
 
 In order to map this data, we will need a base map of the GSA first. Similar to the world data available in ggplot2, rnaturalearth provides us with polygons we can use to create this map. We store the coordinates in the gsa_outline object. 
 
-```{r gsa geo data}
+```{r gsa_geo_data}
 gsa_outline <- ne_countries(country = c("Austria", 
                                         "Germany", 
                                         "Switzerland"), 
-                            returnclass="sf", 
+                            returnclass = "sf", 
                             scale = "large")
 ```
 
 After this bit we can map the base layer of the GSA.
 
-```{r gsa plot empty}
+```{r gsa_plot_empty}
 gsa <- ggplot(data = gsa_outline) + 
   geom_sf()
 
+ # Show plot:
 gsa
 ```
 
 Now we can combine the base layer with the data in gsa_data. We  want R to map the proportion of our counts to the color argument and the size argument reflects the combined count of our features. 
 
-```{r gsa first point plot}
+```{r gsa_first_point_plot}
 gsa_point <- gsa +
+  
+ # Here we add the linguistic data:
   geom_point(data = gsa_data, 
              aes(x = Long, 
                  y = Lat, 
                  color = Proportion, 
                  size = (Count1 + Count2)))
 
+ # Show plot:
 gsa_point
 ```
 
 As the final step we add some design to our map. 
 
-```{r gsa final plot}
+```{r gsa_final_plot}
 gsa_final <- gsa_point +
+  
+ # Axes, scales and titles:
   scale_color_gradient(low = "seagreen3", 
                        high = "mediumpurple3",
                        name = "Schau vs Guck \nin the GSA") +
-  guides(size = "none") +
   xlab("Latitude") + 
   ylab("Longitude") +
+  
+ # Additional cosmetic tweaking:  
+  guides(size = "none") +
   theme_minimal() 
 
+ # Show plot:
 gsa_final
 ```
 
-## USA Pronoun Map
+# USA Pronoun Map
 
 In the next part of this tutorial, we will focus on visualizing a more specific region to show how to narrow down the area of the map. To start, we import the geographical county information for the USA. To achieve this, we first retrieve the relevant location data in an object we call us_geo. The st_as_sf() function changes the way the map data is stored. Instead of having each point of longitude and latitude as its own row, we now store all location details for one county in one row.
 
-```{r us geo data}
+```{r us_geo_data}
 us_geo <- st_as_sf(maps::map(database = "county", 
                              plot = FALSE, 
                              fill = TRUE))
+ # Show data:
 head(us_geo)
 ```
 
 We can now easily map the counties of the US.
 
-```{r us plot empty}
+```{r us_plot_empty}
 ggplot(data = us_geo) +
   geom_sf()
 ```
 
 The next step is importing data to map to the counties. We do this using the read_csv() function, which in this case grabs the data from a URL.
 
-```{r us data}
+```{r us_data}
 us_data <- read_csv("https://anonymous.4open.science/api/repo/mapping-for-linguists-C1DA/file/MAPPING_PRONOUNS.csv")
+
+ # Show data:
 head(us_data)
 ```
 
 We now create a new object us_geo_data and match the information stored in the old objects by ID and county, so that geolocation information and linguistic data are combined.
 
-```{r join us data}
-us_geo_data <- na.omit(left_join(us_geo, us_data, 
-                         by = c("ID" = "county"))) 
+```{r join_us_data}
+us_geo_data <- na.omit(left_join(us_geo, 
+                                 us_data, 
+                                 by = c("ID" = "county"))) 
 ```
 
 Finally, we plot the new object us_geo_data. Just like above, we pass our data to the ggplot() function and add geom_sf() since we’re handling polygons. Now, we also pass aesthetics to geom_sf() to say that the income should be mapped as the fill of the counties. 
 
-```{r me plot 1}
+```{r me_plot_1}
 ggplot(data = us_geo_data) +
   geom_sf(aes(fill =  me))
 ```
 
 To make our map more informative, we are introducing class intervals for our data. First, we create the intervals.
 
-```{r me class intervals creation}
+```{r me_class_intervals_creation}
 pronoun_quantiles <- classIntervals(us_geo_data$me, 
-                               n = 5, 
-                               style = "quantile")
+                                    n = 5, 
+                                    style = "quantile")
+
+ # Show calculated quantiles:
 pronoun_quantiles
 ```
 
 Then we assign each data point its corresponding interval.
 
-```{r me class intervals assignment}
+```{r me_class_intervals_assignment}
+ # Introduce new column with quantile breaks:
 us_geo_data <- mutate(us_geo_data, 
                       pronoun_quantile = cut(me, 
-                                       pronoun_quantiles$brks,
-                                       include.lowest = TRUE,
-                                       dig.lab=6)) 
+                                             pronoun_quantiles$brks,
+                                             include.lowest = TRUE,
+                                             dig.lab=6)) 
 
+ # Recode the quantile breaks for plot legend:
 us_geo_data$pronoun_quantile <- recode(us_geo_data$pronoun_quantile, 
-                                 "[765.7,9936.44]"="< 9936", 
-                                 "(9936.44,11019.1]"="< 11019", 
-                                 "(11019.1,11856.5]" = "< 11857", 
-                                 "(11856.5,12794.3]" = "< 12794", 
-                                 "(12794.3,56994]" = "< 56994")
+                                       "[765.7,9936.44]"="< 9936", 
+                                       "(9936.44,11019.1]"="< 11019", 
+                                       "(11019.1,11856.5]" = "< 11857", 
+                                       "(11856.5,12794.3]" = "< 12794", 
+                                       "(12794.3,56994]" = "< 56994")
 ```
 
 In the next step we will use the class intervals we have introduced for mapping.
 
-```{r me plot 2}
+```{r me_plot_2}
 ggplot(data = us_geo_data) +
+  
+ # fill the shapes depending on their quantile break: 
   geom_sf(aes(fill = pronoun_quantile),
           lwd = 0.1, 
           color = "grey") +
+  
+ # Scales and colour:  
   scale_fill_brewer(palette = "Purples",
                     guide = guide_legend(reverse = TRUE))
 ```
 
 In the last step we style the map.
 
-```{r me plot 3}
+```{r me_plot_3}
 ggplot(data = us_geo_data) +
+  
+ # fill the shapes depending on their quantile break:   
   geom_sf(aes(fill = pronoun_quantile),
           lwd = 0.1, 
           color = "grey") +
+  
+ # Axes, scales and colours:
   scale_fill_brewer(palette = "Purples",
                     guide = guide_legend(reverse = TRUE),
                     name = "'Me' Distribution \nper US County") +
-  coord_sf(crs = "ESRI:102003") +
   xlab("Latitude") + 
   ylab("Longitude") +
-  theme_minimal() 
+  
+ # Additional cosmetic tweaking:  
+  theme_minimal() +
+  
+ # Changing projection:  
+  coord_sf(crs = "ESRI:102003")
 ```
