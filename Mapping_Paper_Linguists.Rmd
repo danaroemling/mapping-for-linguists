@@ -1,8 +1,8 @@
 ---
 title: "Visualizing Map Data for Linguists"
-subtitle: for Roemling, Winter & Grieve (in press). Visualizing Map Data for Linguists - A tutorial with examples from dialectology and typology.
-author: "Dana Roemling"
-date: '2022-11-02'
+subtitle: Visualizing Map Data for Linguists - A tutorial with examples from dialectology and typology.
+author: "Anonymous"
+date: '2023-10-10'
 output:
  html_document:
    toc: true
