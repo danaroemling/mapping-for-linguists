@@ -1,7 +1,7 @@
 ---
 title: "Visualizing Map Data for Linguistics"
 subtitle: Visualizing map data for linguistics using ggplot2 - A tutorial with examples from dialectology and typology.
-author: "Anonymous"
+author: "Dana Roemling"
 date: '2023-10-10'
 output:
  html_document:
