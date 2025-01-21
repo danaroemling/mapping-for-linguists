@@ -1,7 +1,7 @@
 ---
 title: "Visualizing Map Data for Linguistics"
 subtitle: Visualizing map data for linguistics using ggplot2 - A tutorial with examples from dialectology and typology.
-author: "Dana Roemling"
+author: "Dana Roemling, Bodo Winter, Jack Grieve"
 date: '2023-10-10'
 output:
  html_document:
@@ -162,7 +162,7 @@ centered_map +
 We again use read_csv to create a tibble with cities, two features and their counts, the corresponding proportion of the features and geolocation details. We can type gsa_data to check our new data.
 
 ```{r gsa_data}
-gsa_data <- read_csv("https://anonymous.4open.science/api/repo/mapping-for-linguists-C1DA/file/MAPPING_DIALECT.csv")
+gsa_data <- read_csv("https://raw.githubusercontent.com/danaroemling/mapping-for-linguists/main/MAPPING_DIALECT.csv")
 
  # Show data:
 head(gsa_data)
@@ -246,7 +246,7 @@ ggplot(data = us_geo) +
 The next step is importing data to map to the counties. We do this using the read_csv() function, which in this case grabs the data from a URL.
 
 ```{r us_data}
-us_data <- read_csv("https://anonymous.4open.science/api/repo/mapping-for-linguists-C1DA/file/MAPPING_PRONOUNS.csv")
+us_data <- read_csv("https://raw.githubusercontent.com/danaroemling/mapping-for-linguists/main/MAPPING_PRONOUNS.csv")
 
  # Show data:
 head(us_data)
