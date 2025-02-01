@@ -1,4 +1,4 @@
-FROM rocker/tidyverse
+FROM rocker/tidyverse:4.4.2
 
 # Install system dependencies required for the 'sf' package
 RUN apt-get update && \
