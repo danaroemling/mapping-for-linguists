@@ -21,16 +21,24 @@ Before we can start mapping in R, we need to load the libraries we use. We do th
 
 
 ```{r libraries, results="hide"}
+# R version 4.4.1 (2024-06-14)
 library(tidyverse) # overall tool for data wrangling and plot creation
+# version 2.0.0
 library(lingtypology) # used to import linguistic data from WALS
+# version 1.1.20
 library(sf) # handles spatial data & geometry data operations
+# version 1.0-16 
 library(mapproj) # needed for rnaturalearth / dependency
+# version 1.2.11
 library(rnaturalearth) # used for importing coordinates and subsequently 
- # creating country outlines, in this case the German-speaking area
-library(rnaturalearthhires) # same as rnaturalearth but higher resolution
- # optional
+# creating country outlines, in this case the German-speaking area
+# version 1.0.1
+library(rnaturalearthhires) # same as rnaturalearth but higher resolution (optional)
+# version 1.0.0.9000
 library(maps) # used to import geolocation details for the US
+# version 3.4.2
 library(classInt) # to calculate class intervals for the US maps
+# version 0.4-10
 
  # The installation of rnaturalearthhires does not always work with the
  # install.packages() function. If this is the case, you can try:
