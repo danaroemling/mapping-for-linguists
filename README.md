@@ -5,6 +5,7 @@ In this repository we provide the data and code for the [paper](https://www.camb
 Citation:
 Roemling, D., Winter, B., & Grieve, J. (2025). Visualizing map data for linguistics using ggplot2: A tutorial with examples from dialectology and typology. Journal of Linguistic Geography, 1–15. doi:10.1017/jlg.2024.11
 
+Also thanks to Adam Leskis for improving the repo for this paper!
 
 
 
