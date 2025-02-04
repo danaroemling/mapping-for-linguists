@@ -37,7 +37,7 @@ After that's running, you should be able to open http://localhost:8787 in your b
 
 
 
- Running the tutorial
+## Running the tutorial
 
 If you don't feel like messing around with specific versions of R and dependencies, there's a fully configured playgroun at [labs.iximuz.com](https://labs.iximiuz.com/playgrounds/custom-e21deb0c) that you can use. All you need is a web browser!
 
