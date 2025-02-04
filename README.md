@@ -28,3 +28,4 @@ docker run -it --rm -p 127.0.0.1:8787:8787 -e PASSWORD=rstudio tutorial
 
 After that's running, you should be able to open http://localhost:8787 in your browser and see the Rstudio login screen.
 
+![rstudio login screen](https://github.com/danaroemling/mapping-for-linguists/blob/main/rstudio_login_screen.png?raw=true)
