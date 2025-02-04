@@ -8,6 +8,10 @@ Roemling, D., Winter, B., & Grieve, J. (2025). Visualizing map data for linguist
 Also thanks to Adam Leskis for improving the repo for this paper!
 
 
+## Getting started
+
+The main file you will need is the Mapping_Paper_Linguists.Rmd. This has all the code from the tutorial paper. You could, for example, open it in [R Studio](https://posit.co/download/rstudio-desktop/) and start working. An alternative for running the file is using a Docker environment (see below).
+
 
 ## Running locally
 
