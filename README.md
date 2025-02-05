@@ -39,28 +39,29 @@ After that's running, you should be able to open http://localhost:8787 in your b
 
 ## Running the tutorial
 
-If you don't feel like messing around with specific versions of R and dependencies, there's a fully configured playgroun at [labs.iximuz.com](https://labs.iximiuz.com/playgrounds/custom-e21deb0c) that you can use. All you need is a web browser!
+If you don't feel like messing around with specific versions of R and dependencies, there's a fully configured playground at [labs.iximuz.com](https://labs.iximiuz.com/playgrounds/custom-e21deb0c) that you can use. All you need is a web browser!
 
 > You'll need a GitHub username to log in, so if you don't have that, [sign up first](https://github.com/).
+
 1. Navigate to https://labs.iximiuz.com/playgrounds/custom-e21deb0c and start the playground.
 
 2. You'll probably need to wait for about 4-5 minutes for the system to get set up (it's pulling a container image, which is what takes the longest). Compared to fighting R dependencies, you might find this much faster/easier.
 
-![playground warming up](https://github.com/danaroemling/mapping-for-linguists/blob/main/playground_warming_up.png)
+![playground warming up](playground_warming_up.png)
 
-3. Once the terminal prompt shows up, just click the button in the upper right that has an arrow popping up and to the right (that's the button to expose a port).
+3. Once the terminal prompt shows up, You can click on the "Rstudio" tab.
 
-![port expose icon](https://github.com/danaroemling/mapping-for-linguists/blob/main/expose_port_icon.png)
+![playgroun_ready](playground_ready.png)
 
-4. When the dialogue window opens up, enter 8787 into the window and click to generate a link.
+4. Click on the link and a new window will open up to log into Rstudio. The username is "rstudio" and the password is "mappingForLinguists" (case sensitive).
 
-![expose a port](https://github.com/danaroemling/mapping-for-linguists/blob/main/expose_a_port.png)
+![rstudio login page](rstudio_login_screen.png)
 
-4. Click on the link and a new window will open up to log into Rstudio. The username is "rstudio" and the password is "rstudio".
+5. You'll then have a nice fresh Rstudio environment to use for the tutorial.
 
-![rstudio is running](https://github.com/danaroemling/mapping-for-linguists/blob/main/rstudio_is_running.png)
+![rstudio is ready](rstudio_is_ready.png)
 
-5. Follow the tutorial, and have fun!
+6. Follow the tutorial, and have fun!
 
 
 ## Reproducible environment 
