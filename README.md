@@ -33,7 +33,7 @@ docker run -it --rm -p 127.0.0.1:8787:8787 -e PASSWORD=rstudio tutorial
 
 After that's running, you should be able to open http://localhost:8787 in your browser and see the Rstudio login screen.
 
-![rstudio login screen](https://github.com/danaroemling/mapping-for-linguists/blob/main/rstudio_login_screen.png)
+![rstudio login screen](rstudio_login_screen.png)
 
 
 
@@ -51,9 +51,9 @@ If you don't feel like messing around with specific versions of R and dependenci
 
 3. Once the terminal prompt shows up, You can click on the "Rstudio" tab.
 
-![playgroun_ready](playground_ready.png)
+![playground ready](playground_ready.png)
 
-4. Click on the link and a new window will open up to log into Rstudio. The username is "rstudio" and the password is "mappingForLinguists" (case sensitive).
+4. You'll see the Rstudio login screen. The username is "rstudio" and the password is "mappingForLinguists" (case sensitive).
 
 ![rstudio login page](rstudio_login_screen.png)
 
